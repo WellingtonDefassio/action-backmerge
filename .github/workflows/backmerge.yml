@@ -35,6 +35,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: develop
           base: main
-          head: backmerge-main-to-develop
           title: "Backmerge main into develop"
           body: "This is an automated pull request to backmerge changes from main into develop."
