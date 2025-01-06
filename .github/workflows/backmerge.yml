@@ -25,9 +25,9 @@ jobs:
           git checkout main
           git checkout -b backmerge-main-to-develop9
 
-      - name: Push the backmerge branch
-        run: |
-          git push origin backmerge-main-to-develop9
+      # - name: Push the backmerge branch
+      #   run: |
+      #     git push origin backmerge-main-to-develop9
       - name: Create PR
         run: |
           curl -X POST  -H "Authorization: ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/json" -d '{"title": "Backmerge main into develop","head": "backmerge-main-to-develop","base": "main","body": "Este PR foi criado automaticamente para sincronizar alterações da main na develop."}' https://api.github.com/repos/WellingtonDefassio/action-backmerge/pulls
