@@ -11,22 +11,28 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
+
       - name: Set up Git user
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Fetch all branches
         run: git fetch --all
+
       - name: Create a pull request
+        env:
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
         run: |
           curl --request POST \
-            --url https://api.github.com/repos/WellingtonDefassio/action-backmerge/pulls \
+            --url https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/pulls \
             --header "Authorization: token ${{ secrets.SECRET_KEY }}" \
             --header "Content-Type: application/json" \
-            --header "User-Agent: WellingtonDefassio" \
+            --header "User-Agent: ${REPO_OWNER}" \
             --data '{
-              "title": "Backmerge main into develop test",
+              "title": "Backmerge main into develop",
               "head": "main",
               "base": "develop",
-              "body": "Este PR foi criado automaticamente para sincronizar alterações da main na develop test."
+              "body": "Este PR foi criado automaticamente para sincronizar alterações da main na develop."
             }'
