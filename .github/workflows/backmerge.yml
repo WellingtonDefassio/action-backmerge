@@ -20,19 +20,47 @@ jobs:
       - name: Fetch all branches
         run: git fetch --all
 
+      - name: Get the highest release version
+        id: get_release_version
+        run: |
+          # List all branches and filter only release branches with semantic versioning
+          RELEASE_BRANCHES=$(git branch -r | grep -oP 'release/\d+(\.\d+)*' | sed 's|release/||')
+          echo "Found release branches: $RELEASE_BRANCHES"
+
+          # Find the highest semantic version
+          MAX_RELEASE=$(echo "$RELEASE_BRANCHES" | sort -V | tail -n 1)
+          echo "Highest release version: $MAX_RELEASE"
+
+          # Save the highest release version in an environment variable
+          echo "MAX_RELEASE=$MAX_RELEASE" >> $GITHUB_ENV
+
+      - name: Output the highest release number
+        run: |
+          echo "The highest release number is: ${{ env.MAX_RELEASE }}"
+
+      - name: Create a new branch
+        run: |
+          git checkout -b backmerge/${{ env.MAX_RELEASE }}
+          echo "New branch created: backmerge/${{ env.MAX_RELEASE }}"
+          git push --set-upstream origin backmerge/${{ env.MAX_RELEASE }}
+
       - name: Create a pull request
         env:
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
+          # Assign the environment variable to a local shell variable
+          RELEASE_VERSION=${{ env.MAX_RELEASE }}
+          
+          # Use the variable in the curl command
           curl --request POST \
             --url https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/pulls \
             --header "Authorization: token ${{ secrets.SECRET_KEY }}" \
             --header "Content-Type: application/json" \
             --header "User-Agent: ${REPO_OWNER}" \
             --data '{
-              "title": "Backmerge main into develop",
-              "head": "main",
+              "title": "Backmerge v'"$RELEASE_VERSION"' main into develop",
+              "head": "backmerge/'"$RELEASE_VERSION"'",
               "base": "develop",
               "body": "### Checklist:\n\n- [ ] Update the `pom.xml` with a new version.\n- [ ] Add the `-SNAPSHOT` to the new version.\n\nThis PR was created automatically to synchronize changes from `main` to `develop`."
             }'
