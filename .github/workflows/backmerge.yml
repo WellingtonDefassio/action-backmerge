@@ -48,16 +48,19 @@ jobs:
         env:
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
-          RELEASE_NUMBER: ${{ env.MAX_RELEASE }}
         run: |
+          # Assign the environment variable to a local shell variable
+          RELEASE_VERSION=${{ env.MAX_RELEASE }}
+          
+          # Use the variable in the curl command
           curl --request POST \
             --url https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/pulls \
             --header "Authorization: token ${{ secrets.SECRET_KEY }}" \
             --header "Content-Type: application/json" \
             --header "User-Agent: ${REPO_OWNER}" \
             --data '{
-              "title": "Backmerge main into develop",
-              "head": "backmerge/${{ env.MAX_RELEASE }}",
+              "title": "Backmerge v"$RELEASE_VERSION" main into develop",
+              "head": "backmerge/'"$RELEASE_VERSION"'",
               "base": "develop",
               "body": "### Checklist:\n\n- [ ] Update the `pom.xml` with a new version.\n- [ ] Add the `-SNAPSHOT` to the new version.\n\nThis PR was created automatically to synchronize changes from `main` to `develop`."
             }'
