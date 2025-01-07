@@ -57,7 +57,7 @@ jobs:
             --header "User-Agent: ${REPO_OWNER}" \
             --data '{
               "title": "Backmerge main into develop",
-              "head": "backmerge/${RELEASE_NUMBER}",
+              "head": "backmerge/${{ env.MAX_RELEASE }}",
               "base": "develop",
               "body": "### Checklist:\n\n- [ ] Update the `pom.xml` with a new version.\n- [ ] Add the `-SNAPSHOT` to the new version.\n\nThis PR was created automatically to synchronize changes from `main` to `develop`."
             }'
