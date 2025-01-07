@@ -40,8 +40,9 @@ jobs:
 
       - name: Create a new branch
         run: |
-          git checkout -b backmerge/$MAX_RELEASE
-          echo "New branch created: backmerge/$MAX_RELEASE"
+          git checkout -b backmerge/${{ env.MAX_RELEASE }}
+          echo "New branch created: backmerge/${{ env.MAX_RELEASE }}"
+          git push origin ${{ env.MAX_RELEASE }}
 
       - name: Create a pull request
         env:
