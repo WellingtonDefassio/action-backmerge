@@ -20,18 +20,18 @@ jobs:
       - name: Fetch all branches
         run: git fetch --all
 
-      - name: Get the highest release number
-        id: get_release_number
+      - name: Get the highest release version
+        id: get_release_version
         run: |
-          # List all branches and filter only release branches
-          RELEASE_BRANCHES=$(git branch -r | grep -oP 'release/\d+' | sed 's|release/||')
+          # List all branches and filter only release branches with semantic versioning
+          RELEASE_BRANCHES=$(git branch -r | grep -oP 'release/\d+(\.\d+)*' | sed 's|release/||')
           echo "Found release branches: $RELEASE_BRANCHES"
 
-          # Find the highest release number
-          MAX_RELEASE=$(echo "$RELEASE_BRANCHES" | sort -nr | head -n 1)
-          echo "Highest release number: $MAX_RELEASE"
+          # Find the highest semantic version
+          MAX_RELEASE=$(echo "$RELEASE_BRANCHES" | sort -V | tail -n 1)
+          echo "Highest release version: $MAX_RELEASE"
 
-          # Save the highest release number in an environment variable
+          # Save the highest release version in an environment variable
           echo "MAX_RELEASE=$MAX_RELEASE" >> $GITHUB_ENV
 
       - name: Output the highest release number
@@ -42,7 +42,7 @@ jobs:
         run: |
           git checkout -b backmerge/${{ env.MAX_RELEASE }}
           echo "New branch created: backmerge/${{ env.MAX_RELEASE }}"
-          git push origin ${{ env.MAX_RELEASE }}
+          git push
 
       - name: Create a pull request
         env:
