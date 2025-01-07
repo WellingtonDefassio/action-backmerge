@@ -20,18 +20,28 @@ jobs:
       - name: Fetch all branches
         run: git fetch --all
 
-      - name: Get the last release number
-        id: get_release
+      - name: Get the highest release number
+        id: get_release_number
         run: |
-          RELEASE_DATA=$(curl -s -H "Authorization: token ${{ secrets.SECRET_KEY }}" https://api.github.com/repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases | jq -r '.[0].tag_name')
-          echo "Last release tag: $RELEASE_DATA"
-          RELEASE_NUMBER=$(echo $RELEASE_DATA | grep -oP '\d+')
-          echo "RELEASE_NUMBER=$RELEASE_NUMBER" >> $GITHUB_ENV
+          # List all branches and filter only release branches
+          RELEASE_BRANCHES=$(git branch -r | grep -oP 'release/\d+' | sed 's|release/||')
+          echo "Found release branches: $RELEASE_BRANCHES"
+
+          # Find the highest release number
+          MAX_RELEASE=$(echo "$RELEASE_BRANCHES" | sort -nr | head -n 1)
+          echo "Highest release number: $MAX_RELEASE"
+
+          # Save the highest release number in an environment variable
+          echo "MAX_RELEASE=$MAX_RELEASE" >> $GITHUB_ENV
+
+      - name: Output the highest release number
+        run: |
+          echo "The highest release number is: ${{ env.MAX_RELEASE }}"
 
       - name: Create a new branch
         run: |
-          git checkout -b backmerge/$RELEASE_NUMBER
-          echo "New branch created: backmerge/$RELEASE_NUMBER"
+          git checkout -b backmerge/$MAX_RELEASE
+          echo "New branch created: backmerge/$MAX_RELEASE"
 
       - name: Create a pull request
         env:
@@ -45,7 +55,7 @@ jobs:
             --header "User-Agent: ${REPO_OWNER}" \
             --data '{
               "title": "Backmerge main into develop",
-              "head": "backmerge/${{ env.RELEASE_NUMBER }}",
+              "head": "backmerge/${{ env.MAX_RELEASE }}",
               "base": "develop",
               "body": "### Checklist:\n\n- [ ] Update the `pom.xml` with a new version.\n- [ ] Add the `-SNAPSHOT` to the new version.\n\nThis PR was created automatically to synchronize changes from `main` to `develop`."
             }'
