@@ -20,6 +20,19 @@ jobs:
       - name: Fetch all branches
         run: git fetch --all
 
+      - name: Get the last release number
+        id: get_release
+        run: |
+          RELEASE_DATA=$(curl -s -H "Authorization: token ${{ secrets.SECRET_KEY }}" https://api.github.com/repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases | jq -r '.[0].tag_name')
+          echo "Last release tag: $RELEASE_DATA"
+          RELEASE_NUMBER=$(echo $RELEASE_DATA | grep -oP '\d+')
+          echo "RELEASE_NUMBER=$RELEASE_NUMBER" >> $GITHUB_ENV
+
+      - name: Create a new branch
+        run: |
+          git checkout -b backmerge/$RELEASE_NUMBER
+          echo "New branch created: backmerge/$RELEASE_NUMBER"
+
       - name: Create a pull request
         env:
           REPO_OWNER: ${{ github.repository_owner }}
@@ -32,7 +45,7 @@ jobs:
             --header "User-Agent: ${REPO_OWNER}" \
             --data '{
               "title": "Backmerge main into develop",
-              "head": "main",
+              "head": "backmerge/${{ env.RELEASE_NUMBER }}",
               "base": "develop",
               "body": "### Checklist:\n\n- [ ] Update the `pom.xml` with a new version.\n- [ ] Add the `-SNAPSHOT` to the new version.\n\nThis PR was created automatically to synchronize changes from `main` to `develop`."
             }'
