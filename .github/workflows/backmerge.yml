@@ -59,7 +59,7 @@ jobs:
             --header "Content-Type: application/json" \
             --header "User-Agent: ${REPO_OWNER}" \
             --data '{
-              "title": "Backmerge v"$RELEASE_VERSION" main into develop",
+              "title": "Backmerge v'"$RELEASE_VERSION"' main into develop",
               "head": "backmerge/'"$RELEASE_VERSION"'",
               "base": "develop",
               "body": "### Checklist:\n\n- [ ] Update the `pom.xml` with a new version.\n- [ ] Add the `-SNAPSHOT` to the new version.\n\nThis PR was created automatically to synchronize changes from `main` to `develop`."
